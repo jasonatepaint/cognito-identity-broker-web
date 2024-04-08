@@ -46,11 +46,13 @@ function App() {
      */
     const onAuthResponse = (r: ResponseMessage) => {
         const { user, isAuthenticated = false } = r.details;
-        setIsProcessing(false);
         setAuthenticated(isAuthenticated.toString());
         setEmail(user?.email || "");
         setName(user?.name || "");
         setResponse(r);
+        setTimeout(() => {
+            setIsProcessing(false);
+        }, 500);
     };
 
     const onCheckAuthenticationClick = () => {

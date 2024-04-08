@@ -1,7 +1,7 @@
 import axios, { AxiosRequestConfig, Method } from "axios";
 
 const baseURL = "/";
-const timeout = 30000;
+const timeout = 5000;
 
 axios.defaults.validateStatus = (status) => {
     return status < 500;
@@ -34,14 +34,12 @@ const execute = async (
     return result.data;
 };
 
-const post = async (
-    path: string,
-    data: AxiosRequestConfig["data"],
-    headers: AxiosRequestConfig["headers"] = undefined,
-) => {
-    return execute("POST", path, data, headers);
-};
-
-export const ApiRequest = {
-    post,
-};
+export class ApiRequest {
+    static async post(
+        path: string,
+        data: AxiosRequestConfig["data"],
+        headers: AxiosRequestConfig["headers"] = undefined,
+    ) {
+        return execute("POST", path, data, headers);
+    }
+}

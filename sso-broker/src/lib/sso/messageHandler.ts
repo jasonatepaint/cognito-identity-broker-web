@@ -7,8 +7,6 @@ import {
     RedeemCodeActionDetails,
 } from "@jasonatepaint/cognito-sso-client";
 import { AuthService } from "../auth";
-import { ClientState } from "./clientState";
-import { verifyTokens } from "./utils";
 import { isNullOrEmpty } from "../utils/strings";
 import { Logger } from "../utils/logging";
 
@@ -49,7 +47,7 @@ export const processMessage = async (message: MessageEvent<Action>) => {
             response = await processRedeemCode(clientId, redirectUri || "", code, codeVerifier);
             break;
         case "refreshTokens":
-            response = await processRefreshTokens(clientId, authentication.refreshToken);
+            response = await processRefreshTokens(clientId, (authentication || {}).refreshToken);
             break;
         default:
             return;
@@ -61,7 +59,7 @@ export const processMessage = async (message: MessageEvent<Action>) => {
             clientState, //encoded ClientState
             id,
         };
-        Logger.debug("processMessage - response", response);
+        Logger.debug("processMessage", response);
         window.parent.postMessage(response, "*");
     }
 
@@ -87,12 +85,11 @@ const processCheckAuthentication = async (
     Logger.debug("processCheckAuthentication", clientId);
     const msg = <ResponseMessage>{
         response: "checkAuthentication",
-        details: <any>undefined,
     };
     try {
-        const verifiedTokens = await verifyTokens(authentication, clientId);
+        const verifiedTokens = await AuthService.verifyTokens(authentication, clientId);
         const isAuthenticated = !isNullOrEmpty(verifiedTokens?.accessToken);
-        const user = await ClientState.getCurrentUser(verifiedTokens);
+        const user = AuthService.getCurrentUser(verifiedTokens?.idToken);
         msg.details = {
             isAuthenticated,
             authentication: verifiedTokens,
@@ -101,11 +98,7 @@ const processCheckAuthentication = async (
         };
     } catch (err: any) {
         AuthService.logout();
-        msg.details = {
-            isAuthenticated: false,
-            success: false,
-            error: err.message,
-        };
+        return createFailedResponseDetails(msg, err.message);
     }
     return msg;
 };
@@ -139,27 +132,22 @@ const processRedeemCode = async (clientId: string, redirectUri: string, code: st
     Logger.debug("processRedeemCode", code);
     const msg = <ResponseMessage>{
         response: "redeemCode",
-        details: {
-            isAuthenticated: false,
-            success: false,
-        },
     };
     try {
-        const apiResult = await AuthService.getTokensForClient(clientId, redirectUri, code, codeVerifier);
-
-        if (apiResult?.data?.success) {
-            const user = await ClientState.getCurrentUser(apiResult.data.authentication);
-            msg.details = {
-                success: true,
-                isAuthenticated: true,
-                authentication: apiResult.data.authentication,
-                user,
-            };
-        } else {
-            msg.details.error = apiResult.error;
+        const { error, data } = await AuthService.getTokensForClient(clientId, redirectUri, code, codeVerifier);
+        if (error) {
+            return createFailedResponseDetails(msg, error);
         }
+        const { authentication } = data;
+        const user = AuthService.getCurrentUser(authentication.idToken);
+        msg.details = {
+            success: true,
+            isAuthenticated: true,
+            authentication,
+            user,
+        };
     } catch (error: any) {
-        msg.details.error = error.message;
+        return createFailedResponseDetails(msg, error.message);
     }
     return msg;
 };
@@ -172,19 +160,21 @@ const processRedeemCode = async (clientId: string, redirectUri: string, code: st
 const processRefreshTokens = async (clientId: string, refreshToken: string) => {
     const msg = <ResponseMessage>{
         response: "refreshTokens",
-        details: <any>undefined,
     };
     try {
-        const { data } = await AuthService.refreshTokensForClient(clientId, refreshToken);
-        if (!data.success || !data.authentication) {
-            throw new Error("Missing authentication");
+        const { data, error } = await AuthService.refreshTokensForClient(clientId, refreshToken);
+        if (data && (!data.success || !data.authentication)) {
+            return createFailedResponseDetails(msg, "Missing Authentication");
+        }
+        if (error) {
+            return createFailedResponseDetails(msg, error);
         }
 
         const authentication = <TokenCollection>{
             ...data.authentication,
             refreshToken,
         };
-        const user = await ClientState.getCurrentUser(authentication);
+        const user = AuthService.getCurrentUser(authentication.idToken);
         msg.details = {
             isAuthenticated: authentication?.accessToken !== undefined,
             authentication,
@@ -192,11 +182,7 @@ const processRefreshTokens = async (clientId: string, refreshToken: string) => {
             success: authentication?.accessToken !== undefined,
         };
     } catch (error: any) {
-        msg.details = {
-            isAuthenticated: false,
-            success: false,
-            error: error.message,
-        };
+        return createFailedResponseDetails(msg, error.message);
     }
     return msg;
 };
@@ -204,7 +190,7 @@ const processRefreshTokens = async (clientId: string, refreshToken: string) => {
 /**
  * Method that tells the client to redirect to login page
  */
-const redirectToLoginPage = (id: string, clientState: ClientState) => {
+const redirectToLoginPage = (id: string, clientState: string) => {
     const responseMessage = {
         response: "redirectToLogin",
         details: {
@@ -227,4 +213,13 @@ const validateMessage = (message: MessageEvent<Action>) => {
         !message.data.action ||
         (message?.origin === window.location.origin && message.source === window)
     );
+};
+
+const createFailedResponseDetails = (msg: ResponseMessage, error: string) => {
+    msg.details = {
+        isAuthenticated: false,
+        success: false,
+        error,
+    };
+    return msg;
 };

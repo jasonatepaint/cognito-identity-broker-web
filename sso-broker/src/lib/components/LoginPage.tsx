@@ -6,11 +6,11 @@ import { useAsync } from "react-async-hook";
 
 const initialUsername = import.meta.env.VITE_USERNAME;
 const initialPassword = import.meta.env.VITE_PASSWORD;
-const defaultClientAppRedirectUri = "http://localhost:3001";
+const defaultClientAppRedirectUri = import.meta.env.VITE_DEFAULT_CLIENT_REDIRECT_URI;
 
 const LoginPage: React.FC<any> = () => {
     const isAuthenticated = !AuthService.tokenExpired();
-    const [loading, setLoading] = useState<boolean>(false);
+    const [isProcessing, setIsProcessing] = useState(false);
     const [username, setUsername] = useState<string>(initialUsername);
     const [password, setPassword] = useState<string>(initialPassword);
     const [error, setError] = useState<string | undefined>(undefined);
@@ -18,18 +18,16 @@ const LoginPage: React.FC<any> = () => {
 
     useAsync(async () => {
         if (isAuthenticated) {
-            setLoading(true);
+            setIsProcessing(true);
         }
         await AuthService.checkAuthenticationState(params, defaultClientAppRedirectUri);
-        setLoadingOff(true);
+        setIsProcessingOffDelayed();
     }, []);
 
-    const setLoadingOff = (delay = false) => {
-        return delay
-            ? setTimeout(() => {
-                  setLoading(false);
-              }, 1000)
-            : setLoading(false);
+    const setIsProcessingOffDelayed = () => {
+        setTimeout(() => {
+            setIsProcessing(false);
+        }, 10 * 1000);
     };
 
     const handleUsernameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -43,7 +41,7 @@ const LoginPage: React.FC<any> = () => {
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         setError(undefined);
-        setLoading(true);
+        setIsProcessing(true);
         const params = getQueryStringParams();
         const response = await AuthService.login(username, password);
         if (response.success) {
@@ -51,16 +49,16 @@ const LoginPage: React.FC<any> = () => {
             if (redirectUri) {
                 await AuthService.authorizeClient({ ...params, redirectUri });
             }
-            setLoadingOff(true);
+            setIsProcessingOffDelayed();
         } else {
             setError(response.error);
-            setLoadingOff();
+            setIsProcessing(false);
         }
     };
 
     return (
         <div>
-            {loading && (
+            {isProcessing && (
                 <div className="overlay">
                     <div className="overlay-content">
                         <BeatLoader loading={true} />

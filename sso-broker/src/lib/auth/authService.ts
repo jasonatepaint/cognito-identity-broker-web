@@ -2,7 +2,7 @@ import { ApiRequest } from "./apiRequest";
 import { ACCESS_TOKEN_KEY, ID_TOKEN_KEY, REFRESH_TOKEN_KEY } from "./consts";
 import { getCookie, removeCookie } from "../utils/storage";
 import { launchUri } from "../utils/browser";
-import { decodeToken, isTokenExpired } from "./utils.ts";
+import { decodeToken, isTokenExpired } from "../utils/tokens.ts";
 import { Logger } from "../utils/logging";
 import { User, TokenCollection } from "@jasonatepaint/cognito-sso-client";
 
@@ -41,7 +41,7 @@ export class AuthService {
                 await AuthService.authorizeClient(params);
             } else {
                 // force back to a default client app
-                window.location.href = defaultUri;
+                await launchUri(defaultUri);
             }
             return {
                 ...result,
@@ -169,5 +169,30 @@ export class AuthService {
         removeCookie(ID_TOKEN_KEY);
         removeCookie(ACCESS_TOKEN_KEY);
         removeCookie(REFRESH_TOKEN_KEY);
+    }
+
+    /**
+     * Checks to see if tokens are expired and returns refreshed tokens
+     * @param authentication - current tokens to check in the form { accessToken:...,  idToken:..., refreshToken:... }
+     * @param clientId - the client type for the portal
+     * @returns refreshed tokens in the form { accessToken:...,  idToken:..., refreshToken:... }
+     */
+    static async verifyTokens(authentication: TokenCollection, clientId: string) {
+        const tokenExpired = isTokenExpired(authentication.accessToken);
+        const missingIdToken = !authentication.idToken;
+        if ((tokenExpired || missingIdToken) && authentication?.refreshToken) {
+            try {
+                const { data } = await AuthService.refreshTokensForClient(clientId, authentication.refreshToken);
+                if (data) {
+                    return {
+                        ...data.authentication,
+                        refreshToken: authentication.refreshToken,
+                    };
+                }
+            } catch (e) {
+                throw new Error("Unable to refresh tokens");
+            }
+        }
+        return authentication;
     }
 }
