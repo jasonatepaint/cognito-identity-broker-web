@@ -11,7 +11,7 @@
     "test": "vitest run --silent"
   },
   "dependencies": {
-    "@jasonatepaint/cognito-sso-client": "1.0.4",
+    "@jasonatepaint/cognito-sso-client": "1.0.5",
     "axios": "1.6.8",
     "buffer": "6.0.3",
     "crypto": "npm:crypto-browserify",

@@ -100,7 +100,7 @@ describe("Process Message", () => {
     });
 
     test("clientState is put on response", async () => {
-        message.data.action = "checkAuthentication";
+        message.data.action = "authenticate";
         await processMessage(message);
         const action = postMessage.mock.calls[0][0];
         expect(action.details.clientState).toEqual(clientState);
@@ -177,9 +177,9 @@ describe("Initialize", () => {
     });
 });
 
-describe("Check Authentication", () => {
+describe("Authenticate", () => {
     beforeEach(function () {
-        message.data.action = "checkAuthentication";
+        message.data.action = "authenticate";
     });
 
     test("authenticated and responding", async () => {
@@ -187,7 +187,7 @@ describe("Check Authentication", () => {
 
         expect(postMessage).toHaveBeenCalledWith(
             <ResponseMessage>{
-                response: "checkAuthentication",
+                response: "authenticate",
                 details: {
                     id,
                     isAuthenticated: true,
@@ -215,7 +215,7 @@ describe("Check Authentication", () => {
         // assert
         expect(postMessage).toHaveBeenCalledWith(
             <ResponseMessage>{
-                response: "checkAuthentication",
+                response: "authenticate",
                 details: {
                     id,
                     isAuthenticated: false,
@@ -240,7 +240,7 @@ describe("Check Authentication", () => {
 
         expect(postMessage).toHaveBeenCalledWith(
             <ResponseMessage>{
-                response: "checkAuthentication",
+                response: "authenticate",
                 details: {
                     id,
                     isAuthenticated: false,

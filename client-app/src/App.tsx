@@ -34,7 +34,7 @@ function App() {
             },
             () => {
                 const state = getClientState();
-                SsoClient.checkAuthentication({ redirect: true }, state);
+                SsoClient.authenticate({ redirect: true }, state);
             },
         );
         SsoClient.registerCallback("default", onAuthResponse);
@@ -61,7 +61,7 @@ function App() {
         const options = {
             redirect: checkAuthRedirect,
         };
-        SsoClient.checkAuthentication(options, state);
+        SsoClient.authenticate(options, state);
     };
 
     const onLogoutClick = () => {

@@ -35,8 +35,8 @@ export const processMessage = async (message: MessageEvent<Action>) => {
         case "initialize":
             response = processInitialize();
             break;
-        case "checkAuthentication":
-            response = await processCheckAuthentication(authentication, clientId);
+        case "authenticate":
+            response = await processAuthentication(authentication, clientId);
             break;
         case "logout":
             const { clientOnlyLogout } = <LogoutActionDetails>details;
@@ -78,13 +78,13 @@ const processInitialize = () => {
     };
 };
 
-const processCheckAuthentication = async (
+const processAuthentication = async (
     authentication: TokenCollection,
     clientId: string,
 ): Promise<ResponseMessage> => {
     Logger.debug("processCheckAuthentication", clientId);
     const msg = <ResponseMessage>{
-        response: "checkAuthentication",
+        response: "authenticate",
     };
     try {
         const verifiedTokens = await AuthService.verifyTokens(authentication, clientId);
