@@ -35,8 +35,14 @@ The app can be used to test the following functions:
 * **_Logout_** -- Logs the user out of both the Client and the SSO Broker. If `Redirect to Login` is checked, the user will be redirected to the broker to login again.
 * **_Refresh Tokens_** -- This uses the user's `refreshToken` on the client app to request new `id` and `access` tokens. 
 
-<img src="../docs/client-app.png" alt="Client Application" width="1024">
+   Your first visit will result in a redirect to the SSO Broker `http://localhost:3000`. The redirected URL will have a long querystring which informs
+   the broker how to process the request. It will include the following attributes:
+   - `clientId` -- The client app's unique ID
+   - `redirectUri` -- The registered redirectUri for the client app. This is where the broker will redirect back
+   - `codeChallenge` -- A calculated hash value that will be later used to verify the code flow process when the client exchanges the `code` for tokens
+   - `state` -- This will be a Base64 encoded JSON string of anything the client wants to pass along (including a `referrer` url, which is automatically added)
 
+ <img src="../docs/client-app.png" alt="Client Application" width="1024">
 
 ---
 
