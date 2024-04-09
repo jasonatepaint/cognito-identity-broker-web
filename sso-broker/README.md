@@ -24,10 +24,10 @@ This Broker application has 2 main functions. Its first is to facilitate user in
 (e.g. login, MFA, Password reset, etc) and secondly as a communication channel that allows 
 client applications to authenticate the user via an Authorization Code Flow process.
 
-* ### User Interactions -- http://localhost:3000
+* ### User Interactions -- `http://localhost:3000`
   * Simple `username/password` form for processing a login request.
     <img src="../docs/login.png" alt="login" width="500"/>
-* ### Client Communication Service -- http://localhost:3000/client/
+* ### Client Communication Service -- `http://localhost:3000/client/`
   * `initilize` -- Initializes and configures the client application
   * `authenticate` -- Determines the user's current authentication and starts the code flow process, passing back a `code` the client application will exchange for tokens.
   * `redeemCode` -- Processes a client app's `code` and `codeVerifier` and returns tokens, if successful.
