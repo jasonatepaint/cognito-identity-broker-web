@@ -10,7 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@jasonatepaint/cognito-sso-client": "1.0.5",
+    "@jasonatepaint/cognito-sso-client": "1.0.7",
     "@uiw/react-json-view": "2.0.0-alpha.23",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
