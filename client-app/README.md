@@ -1,8 +1,8 @@
 # Client Application
 This example client application illustrates the authentication processes which utilizes the
 [cognito-sso-client](https://github.com/jasonatepaint/cognito-sso-client) client library.
-This removes 99% of the work for each client application, eliminating the need to implement the functionality
-a robust identity broker can provide.
+Between the SSO Broker and the SSO client library, this approach removes 99% of the work required to 
+implement the functionality of a complete authentication system.
 
 ### Prerequisites
 * [Cognito Identity Broker](https://github.com/jasonatepaint/cognito-identity-broker)
@@ -16,16 +16,28 @@ a robust identity broker can provide.
    npm run dev
    ```
 3. Start the [SSO Broker](../sso-broker) App
-4. Navigate to the Client App:  http://localhost:3001
+4. Navigate to the Client App:  `http://localhost:3001`
 
-   Your first visit will result in a redirect to the SSO Broker (http://localhost:3000). The redirected URL will have a
-   long querystring that includes the following attributes:
+   Your first visit will result in a redirect to the SSO Broker `http://localhost:3000`. The redirected URL will have a long querystring which informs the broker how to process the request. It will include the following attributes:
      - `clientId` -- The client app's unique ID
      - `redirectUri` -- The registered redirectUri for the client app. This is where the broker will redirect back
      - `codeChallenge` -- A calculated hash value that will be later used to verify the code flow process when the client exchanges the `code` for tokens
      - `state` -- This will be a Base64 encoded JSON string of anything the client wants to pass along (including a `referrer` url, which is automatically added)
 
+---
+
+## Using the Client App
+The purpose of this example app is to demonstrate how the [Cognito Identity Broker](https://github.com/jasonatepaint/cognito-identity-broker) API, the [SSO Broker](../sso-broker) App, and the [SSO Client Library](https://github.com/jasonatepaint/cognito-sso-client) work in coordination to facilitate the client application authentication process.
+
+The app can be used to test the following functions:
+
+* **_Authenticate_** -- checks with the SSO Broker and authenticates.
+* **_Logout_** -- Logs the user out of both the Client and the SSO Broker. If `Redirect to Login` is checked, the user will be redirected to the broker to login again.
+* **_Refresh Tokens_** -- This uses the user's `refreshToken` on the client app to request new `id` and `access` tokens. 
+
 <img src="../docs/client-app.png" alt="Client Application" width="1024">
+
+
 ---
 
 ## How it works
@@ -54,10 +66,5 @@ placed in the client application. Once loaded, the client and broker communicate
 ></iframe>
 ```
 
-Once the `cognito-sso-client` lib is initialized, the application will attempt to authenticate with the broker causing
-a hard redirect to the broker.
-
-#### Client App examples
-* `Authenticate` -- Will attempt to authenticate a user and will redirect (if option is selected) to the SSO broker to initiate the code flow process
-* `Logout`- Will log the user out of the client app and the SSO broker and will redirect (if option is selected) to the SSO broker to re-authenticate.
-* `Refresh Token` - Will attempt to refresh the user's `idToken` and `accessToken` if the refresh token is valid.
+Once the client library is initialized, the application will attempt to authenticate with the broker causing
+a hard redirect to the broker to start the authentication process.
