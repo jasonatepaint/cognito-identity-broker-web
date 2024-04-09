@@ -40,6 +40,14 @@ describe("is Token Expired", () => {
         expect(isTokenExpired(undefined)).toBeTruthy();
         expect(jwt.decode).toHaveBeenCalledTimes(0);
     });
+
+    test("decode token throws exception", async () => {
+      mockDecode.mockImplementation(() => {
+        throw new Error('some-error');
+      });
+      expect(isTokenExpired(authentication.accessToken)).toBeTruthy();
+      expect(jwt.decode).toHaveBeenCalledTimes(1);
+    });
 });
 
 describe("decode token", () => {

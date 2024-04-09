@@ -20,7 +20,7 @@ describe("Logger", () => {
         Logger.error("error");
     };
 
-    test("log as debug", async () => {
+	test("log as debug", async () => {
         logIt(LogLevel.debug);
 
         expect(debug).toHaveBeenCalledWith(Logger.format("debug"));
@@ -65,4 +65,11 @@ describe("Logger", () => {
         Logger.debug("debug", { some: "thing" }, ["test"]);
         expect(debug).toHaveBeenCalledWith(Logger.format("debug"), { some: "thing" }, ["test"]);
     });
+
+	test('set logLevel returns', async () => {
+		Logger.setLogLevel(LogLevel.debug);
+		Logger.setLogLevel(LogLevel.debug); //second setting
+		Logger.debug("debug");
+		expect(debug).toHaveBeenCalledWith(Logger.format("debug"))
+	});
 });

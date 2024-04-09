@@ -351,7 +351,32 @@ describe("Redeem Code", () => {
         expect(AuthService.getCurrentUser).toHaveBeenCalledWith(authentication.idToken);
     });
 
-    test("handles exception", async () => {
+    test("getTokensForClient returns error", async () => {
+        mockGetTokensForClient.mockReturnValue({
+            error: "some error"
+        });
+
+        await processMessage(message);
+
+        expect(postMessage).toHaveBeenCalledWith(
+            <ResponseMessage>{
+                response: "redeemCode",
+                details: {
+                    id,
+                    isAuthenticated: false,
+                    success: false,
+                    error: "some error",
+                    clientState,
+                },
+            },
+            "*",
+        );
+
+        expect(AuthService.getTokensForClient).toHaveBeenCalledWith(clientId, redirectUri, code, codeVerifier);
+        expect(AuthService.getCurrentUser).toHaveBeenCalledTimes(0);
+    });
+
+    test("getTokensForClient throws exception", async () => {
         const error = new Error("some error");
         mockGetTokensForClient.mockRejectedValue(error);
 
@@ -433,6 +458,31 @@ describe("Refresh Tokens", () => {
                     clientState,
                     success: false,
                     error: "Missing Authentication",
+                },
+            },
+            "*",
+        );
+
+        expect(AuthService.refreshTokensForClient).toHaveBeenCalledWith(clientId, refreshToken);
+        expect(AuthService.getCurrentUser).toHaveBeenCalledTimes(0);
+    });
+
+    test("RefreshTokensForClient returns error", async () => {
+        mockRefreshTokensForClient.mockReturnValue({
+            error: "some error"
+        });
+
+        await processMessage(message);
+
+        expect(postMessage).toHaveBeenCalledWith(
+            <ResponseMessage>{
+                response: "refreshTokens",
+                details: {
+                    id,
+                    isAuthenticated: false,
+                    success: false,
+                    clientState,
+                    error: "some error"
                 },
             },
             "*",

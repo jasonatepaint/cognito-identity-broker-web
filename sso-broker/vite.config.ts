@@ -44,7 +44,12 @@ export default defineConfig({
         setupFiles: [resolve(projectRootDir, "tests/setup.ts")],
         coverage: {
             provider: "istanbul",
-            exclude: ["node_modules/", "tests/setup.ts"],
+            exclude: [
+                "node_modules/",
+                "*.cjs",
+                "tests/*.ts",
+                "src/App.tsx", "src/main.tsx", "src/client.tsx"
+            ],
         },
         clearMocks: true,
     },
